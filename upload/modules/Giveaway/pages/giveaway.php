@@ -87,6 +87,10 @@ if (Input::exists()) {
                     'ip' => HttpUtils::getRemoteAddress(),
                 ]);
 
+                // Re-query giveaway
+                EventHandler::executeEvent(new UserEntryGiveawayEvent($giveaway, $user));
+                EventHandler::executeEvent(new GiveawayUpdatedEvent($giveaway));
+
                 Session::flash('giveaway_success', $giveaway_language->get('general', 'successfully_entered_giveaway'));
                 Redirect::to(URL::build('/giveaway'));
             } else {

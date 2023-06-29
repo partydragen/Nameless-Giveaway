@@ -26,6 +26,11 @@ class Giveaway_Module extends Module {
         // Define URLs which belong to this module
         $pages->add('Giveaway', '/giveaway', 'pages/giveaway.php', 'giveaway', true);
         $pages->add('Giveaway', '/panel/giveaway', 'pages/panel/giveaway.php');
+
+        EventHandler::registerEvent(GiveawayCreatedEvent::class);
+        EventHandler::registerEvent(GiveawayUpdatedEvent::class);
+        EventHandler::registerEvent(GiveawayEndedEvent::class);
+        EventHandler::registerEvent(UserEntryGiveawayEvent::class);
     }
 
     public function onInstall() {

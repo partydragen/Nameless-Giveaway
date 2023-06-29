@@ -25,6 +25,14 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// Load classes
+spl_autoload_register(function ($class) {
+    $path = join(DIRECTORY_SEPARATOR, [ROOT_PATH, 'modules', 'Giveaway', 'classes', 'Events', $class . '.php']);
+    if (file_exists($path)) {
+        require_once($path);
+    }
+});
+
 // Initialise module
 require_once(ROOT_PATH . '/modules/Giveaway/module.php');
 $module = new Giveaway_Module($language, $giveaway_language, $pages);

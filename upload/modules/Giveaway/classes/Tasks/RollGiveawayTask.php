@@ -32,6 +32,8 @@ class RollGiveawayTask extends Task {
             }
         }
 
+        EventHandler::executeEvent(new GiveawayEndedEvent($giveaway));
+
         unset($winners[0]);
         $this->setOutput(['winners' => $winners]);
 

@@ -99,6 +99,7 @@ if (!isset($_GET['action'])) {
                             'required_groups' => json_encode(isset($required_groups) && is_array($required_groups) ? $required_groups : [])
                         ]);
                         $giveaway_id = DB::getInstance()->lastId();
+                        $giveaway = new Giveaway($giveaway_id);
 
                         Queue::schedule((new RollGiveawayTask())->fromNew(
                             Module::getIdFromName('Giveaway'),
@@ -111,6 +112,8 @@ if (!isset($_GET['action'])) {
                         $task_id = DB::getInstance()->lastId();
 
                         DB::getInstance()->query('UPDATE nl2_giveaway SET task_id = ? WHERE id = ?', [$task_id, $giveaway_id]);
+
+                        EventHandler::executeEvent(new GiveawayCreatedEvent($giveaway));
 
                         Session::flash('giveaway_success', $giveaway_language->get('general', 'giveaway_created_successfully'));
                         Redirect::to(URL::build('/panel/giveaway'));
@@ -218,6 +221,10 @@ if (!isset($_GET['action'])) {
                         DB::getInstance()->update('queue', $giveaway->data()->task_id, [
                             'scheduled_for' => $ends
                         ]);
+
+                        // Re-query giveaway
+                        $giveaway = new Giveaway($giveaway->data()->id);
+                        EventHandler::executeEvent(new GiveawayUpdatedEvent($giveaway));
 
                         Session::flash('giveaway_success', $giveaway_language->get('general', 'giveaway_updated_successfully'));
                         Redirect::to(URL::build('/panel/giveaway'));
