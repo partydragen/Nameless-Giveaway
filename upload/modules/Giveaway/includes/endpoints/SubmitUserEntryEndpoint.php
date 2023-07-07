@@ -45,9 +45,14 @@ class SubmitUserEntryEndpoint extends KeyAuthEndpoint {
         if ($already_entered->count()) {
             $already_entered = $already_entered->first();
 
-            if ($already_entered->entered >= strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) {
+            if ($giveaway->data()->entry_period != 'no_period' && $giveaway->data()->entry_interval != 0) {
+                if ($already_entered->entered >= strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) {
+                    $has_entered = true;
+
+                    $time_left = round(($already_entered->entered - strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)));
+                }
+            } else {
                 $has_entered = true;
-                $time_left = round(($already_entered->entered - strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) / 60);
             }
         }
 
@@ -63,9 +68,19 @@ class SubmitUserEntryEndpoint extends KeyAuthEndpoint {
             EventHandler::executeEvent(new UserEntryGiveawayEvent($giveaway, $user));
             EventHandler::executeEvent(new GiveawayUpdatedEvent($giveaway));
 
-            $api->returnArray(['message' => 'Successfully entered giveaway', 'cooldown' => round((date('U') - strtotime($giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) / 60)]);
+            if ($giveaway->data()->entry_period != 'no_period' && $giveaway->data()->entry_interval != 0) {
+                $cooldown = strtotime('+' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period) - date('U');
+
+                $api->returnArray(['message' => 'Successfully entered giveaway', 'cooldown' => $cooldown]);
+            } else {
+                $api->returnArray(['message' => 'Successfully entered giveaway']);
+            }
         } else {
-            $api->throwError('giveaway:already_entered_giveaway', ['cooldown' => $time_left]);
+            if ($giveaway->data()->entry_period != 'no_period' && $giveaway->data()->entry_interval != 0) {
+                $api->throwError('giveaway:already_entered_giveaway', ['cooldown' => $time_left ?? null]);
+            }
+
+            $api->throwError('giveaway:already_entered_giveaway');
         }
     }
 }
