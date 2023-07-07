@@ -12,7 +12,7 @@ class Giveaway_Module extends Module {
     private Language $_language;
     private Language $_giveaway_language;
 
-    public function __construct($language, $giveaway_language, $pages){
+    public function __construct($language, $giveaway_language, $pages, Endpoints $endpoints){
         $this->_language = $language;
         $this->_giveaway_language = $giveaway_language;
 
@@ -31,6 +31,8 @@ class Giveaway_Module extends Module {
         EventHandler::registerEvent(GiveawayUpdatedEvent::class);
         EventHandler::registerEvent(GiveawayEndedEvent::class);
         EventHandler::registerEvent(UserEntryGiveawayEvent::class);
+
+        $endpoints->loadEndpoints(ROOT_PATH . '/modules/Giveaway/includes/endpoints');
     }
 
     public function onInstall() {

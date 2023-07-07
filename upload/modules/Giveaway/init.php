@@ -35,4 +35,4 @@ spl_autoload_register(function ($class) {
 
 // Initialise module
 require_once(ROOT_PATH . '/modules/Giveaway/module.php');
-$module = new Giveaway_Module($language, $giveaway_language, $pages);
+$module = new Giveaway_Module($language, $giveaway_language, $pages, $endpoints);
