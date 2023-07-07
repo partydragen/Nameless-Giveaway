@@ -35,7 +35,7 @@ class GiveawayEndedEvent extends AbstractEvent implements HasWebhookParams {
                         'id' => $winner_user->data()->id,
                         'username' => $winner_user->getDisplayname(),
                         'profile' => $winner_user->getProfileURL(),
-                        'avatar' => $winner_user->getAvatar()
+                        'avatar' => URL::getSelfURL() . ltrim($winner_user->getAvatar(), '/')
                     ];
                 }
             }

@@ -40,7 +40,7 @@ class Giveaway {
      * @return bool Whether the giveaway is active or not.
      */
     public function isActive(): bool {
-        return $giveaway->ends < date('U');
+        return $this->data()->ends > date('U');
     }
 
     /**

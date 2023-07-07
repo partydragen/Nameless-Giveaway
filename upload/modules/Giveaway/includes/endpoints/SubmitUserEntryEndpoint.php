@@ -41,7 +41,7 @@ class SubmitUserEntryEndpoint extends KeyAuthEndpoint {
         }
 
         // Has user id or ip already entered?
-        $already_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND ip = ? OR giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->data()->id, HttpUtils::getRemoteAddress(), $giveaway->data()->id, $user->data()->id]);
+        $already_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND ip = ? OR giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->data()->id, $user->data()->lastip, $giveaway->data()->id, $user->data()->id]);
         if ($already_entered->count()) {
             $already_entered = $already_entered->first();
 
@@ -56,7 +56,7 @@ class SubmitUserEntryEndpoint extends KeyAuthEndpoint {
                 'giveaway_id' => $giveaway->data()->id,
                 'user_id' => $user->data()->id,
                 'entered' => date("U"),
-                'ip' => HttpUtils::getRemoteAddress(),
+                'ip' => $user->data()->lastip,
             ]);
 
             // Re-query giveaway
