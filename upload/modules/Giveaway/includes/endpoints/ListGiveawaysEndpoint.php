@@ -21,6 +21,11 @@ class ListGiveawaysEndpoint extends KeyAuthEndpoint {
             array_push($params, $_GET['giveaway']);
         }
 
+        if (isset($_GET['active'])) {
+            $where .= ' AND ends ' . ($_GET['active'] == 'true' ? '>' : '<') .' ?';
+            array_push($params, date('U'));
+        }
+
         if (isset($_GET['limit']) && is_numeric($_GET['limit'])) {
             $limit .= ' LIMIT '. $_GET['limit'];
         } else {
