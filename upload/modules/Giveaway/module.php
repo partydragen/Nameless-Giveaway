@@ -73,71 +73,71 @@ class Giveaway_Module extends Module {
 
         if (defined('BACK_END')){
             if ($user->hasPermission('staffcp.giveaway')){
-				$cache->setCache('panel_sidebar');
-				if (!$cache->isCached('giveaway_order')){
-					$order = 20;
-					$cache->store('giveaway_order', 20);
-				} else {
-					$order = $cache->retrieve('giveaway_order');
-				}
+                $cache->setCache('panel_sidebar');
+                if (!$cache->isCached('giveaway_order')){
+                    $order = 20;
+                    $cache->store('giveaway_order', 20);
+                } else {
+                    $order = $cache->retrieve('giveaway_order');
+                }
 
-				$navs[2]->add('giveaway_divider', mb_strtoupper($this->_giveaway_language->get('general', 'giveaway')), 'divider', 'top', null, $order, '');
+                $navs[2]->add('giveaway_divider', mb_strtoupper($this->_giveaway_language->get('general', 'giveaway')), 'divider', 'top', null, $order, '');
                 if(!$cache->isCached('giveaway_icon')){
-					$icon = '<i class="nav-icon fas fa-dollar-sign"></i>';
-					$cache->store('giveaway_icon', $icon);
-				} else
-					$icon = $cache->retrieve('giveaway_icon');
+                    $icon = '<i class="nav-icon fas fa-dollar-sign"></i>';
+                    $cache->store('giveaway_icon', $icon);
+                } else
+                    $icon = $cache->retrieve('giveaway_icon');
 
-				$navs[2]->add('giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/panel/giveaway'), 'top', null, ($order + 0.1), $icon);
+                $navs[2]->add('giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/panel/giveaway'), 'top', null, ($order + 0.1), $icon);
             }
 
             /*if (defined('PANEL_PAGE') && PANEL_PAGE == 'dashboard'){
-				// Dashboard graph
+                // Dashboard graph
 
-				// Get data for points
-				$points = DB::getInstance()->orderWhere('giveaway', 'entered > ' . strtotime("-1 week"), 'entered', 'ASC')->results();
+                // Get data for points
+                $points = DB::getInstance()->orderWhere('giveaway', 'entered > ' . strtotime("-1 week"), 'entered', 'ASC')->results();
 
-				$cache->setCache('dashboard_graph');
-				if ($cache->isCached('giveaway_data')){
-					$output = $cache->retrieve('giveaway_data');
+                $cache->setCache('dashboard_graph');
+                if ($cache->isCached('giveaway_data')){
+                    $output = $cache->retrieve('giveaway_data');
 
-				} else {
-					$output = [];
+                } else {
+                    $output = [];
 
-					$output['datasets']['points']['label'] = 'giveaway_language/general/giveaway'; // for $giveaway_language->get('general', 'giveaway');
-					$output['datasets']['points']['colour'] = '#603000';
+                    $output['datasets']['points']['label'] = 'giveaway_language/general/giveaway'; // for $giveaway_language->get('general', 'giveaway');
+                    $output['datasets']['points']['colour'] = '#603000';
 
-					foreach ($points as $point){
-						$date = date('d M Y', $point->entered);
-						$date = '_' . strtotime($date);
+                    foreach ($points as $point){
+                        $date = date('d M Y', $point->entered);
+                        $date = '_' . strtotime($date);
 
-						if(isset($output[$date]['points'])){
-							$output[$date]['points'] = $output[$date]['points'] + 1;
-						} else {
-							$output[$date]['points'] = 1;
-						}
-					}
+                        if(isset($output[$date]['points'])){
+                            $output[$date]['points'] = $output[$date]['points'] + 1;
+                        } else {
+                            $output[$date]['points'] = 1;
+                        }
+                    }
 
-					// Fill in missing dates, set points to 0
-					$start = strtotime("-1 week");
-					$start = date('d M Y', $start);
-					$start = strtotime($start);
-					$end = strtotime(date('d M Y'));
-					while($start <= $end){
-						if(!isset($output['_' . $start]['points']))
-							$output['_' . $start]['points'] = 0;
+                    // Fill in missing dates, set points to 0
+                    $start = strtotime("-1 week");
+                    $start = date('d M Y', $start);
+                    $start = strtotime($start);
+                    $end = strtotime(date('d M Y'));
+                    while($start <= $end){
+                        if(!isset($output['_' . $start]['points']))
+                            $output['_' . $start]['points'] = 0;
 
-						$start = strtotime('+1 day', $start);
-					}
+                        $start = strtotime('+1 day', $start);
+                    }
 
-					// Sort by date
-					ksort($output);
+                    // Sort by date
+                    ksort($output);
 
-					$cache->store('giveaway_data', $output, 120);
+                    $cache->store('giveaway_data', $output, 120);
 
-				}
+                }
 
-				Core_Module::addDataToDashboardGraph($this->_language->get('admin', 'overview'), $output);
+                Core_Module::addDataToDashboardGraph($this->_language->get('admin', 'overview'), $output);
             }*/
         }
 

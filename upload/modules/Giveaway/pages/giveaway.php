@@ -15,7 +15,7 @@ $captcha = false;
 
 // Handle input
 if (Input::exists()) {
-	if (Token::check(Input::get('token'))) {
+    if (Token::check(Input::get('token'))) {
         // Is user logged in?
         if (!$user->isLoggedIn()) {
             Session::flash('giveaway_error', $giveaway_language->get('general', 'login_to_enter'));
@@ -101,10 +101,10 @@ if (Input::exists()) {
             // Invalid recaptcha
             $errors[] = $language->get('user', 'invalid_recaptcha');
         }
-	} else {
-		// Invalid token
-		$errors[] = $language->get('general', 'invalid_token');
-	}
+    } else {
+        // Invalid token
+        $errors[] = $language->get('general', 'invalid_token');
+    }
 }
 
 // Get current active giveaways
@@ -178,15 +178,15 @@ if ($giveaway_query->count()) {
         ];
     }
 
-	$smarty->assign([
-		'GIVEAWAY_LIST' => $giveaway_list,
+    $smarty->assign([
+        'GIVEAWAY_LIST' => $giveaway_list,
         'ENDS' => $giveaway_language->get('general', 'ends'),
         'ENTRIES' => $giveaway_language->get('general', 'entries'),
         'YOUR_ENTRIES' => $giveaway_language->get('general', 'your_entries'),
         'WINNERS' => $giveaway_language->get('general', 'winners'),
         'ACTIVE' => $giveaway_language->get('general', 'active'),
         'ENDED' => $giveaway_language->get('general', 'ended'),
-	]);
+    ]);
 } else {
     $smarty->assign('NO_GIVEAWAY', $giveaway_language->get('general', 'no_giveaways'));
 }
@@ -251,6 +251,6 @@ $smarty->assign('WIDGETS_RIGHT', $widgets->getWidgets('right'));
 
 require(ROOT_PATH . '/core/templates/navbar.php');
 require(ROOT_PATH . '/core/templates/footer.php');
-	
+
 // Display template
 $template->displayTemplate('giveaway/giveaway.tpl', $smarty);
