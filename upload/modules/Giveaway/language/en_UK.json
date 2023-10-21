@@ -33,5 +33,10 @@
     "general/current_version_x": "Current module version: {{version}}",
     "general/new_version_x": "New module version: {{new_version}}",
     "admin/confirm_delete_giveaway": "Are you sure you want to delete this giveaway?",
-    "admin/giveaway_deleted_successfully": "Giveaway deleted successfully."
+    "admin/giveaway_deleted_successfully": "Giveaway deleted successfully.",
+    "admin/giveaway_created": "Giveaway Created",
+    "admin/giveaway_updated": "Giveaway Updated",
+    "admin/giveaway_ended": "Giveaway Ended",
+    "admin/giveaway_deleted": "Giveaway Deleted",
+    "admin/user_entry_giveaway": "User entry giveaway"
 }

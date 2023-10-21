@@ -306,11 +306,16 @@ if (!isset($_GET['action'])) {
             if (Input::exists()) {
                 if (Token::check(Input::get('token'))) {
                     if (isset($_POST['id'])) {
-                        DB::getInstance()->delete('giveaway', ['id', '=', $_POST['id']]);
-                        DB::getInstance()->delete('giveaway_entries', ['giveaway_id', '=', $_POST['id']]);
-                        DB::getInstance()->delete('queue', [['entity', '=', 'giveaway'], ['entity_id', '=', $_POST['id']]]);
+                        $giveaway = new Giveaway($_POST['id']);
+                        if ($giveaway->exists()) {
+                            DB::getInstance()->delete('giveaway', ['id', '=', $_POST['id']]);
+                            DB::getInstance()->delete('giveaway_entries', ['giveaway_id', '=', $_POST['id']]);
+                            DB::getInstance()->delete('queue', [['entity', '=', 'giveaway'], ['entity_id', '=', $_POST['id']]]);
 
-                        Session::flash('giveaway_success', $giveaway_language->get('admin', 'giveaway_deleted_successfully'));
+                            EventHandler::executeEvent(new GiveawayDeletedEvent($giveaway));
+
+                            Session::flash('giveaway_success', $giveaway_language->get('admin', 'giveaway_deleted_successfully'));
+                        }
                     }
                 } else {
                     $errors[] = $language->get('general', 'invalid_token');

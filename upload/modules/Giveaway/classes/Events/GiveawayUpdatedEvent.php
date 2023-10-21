@@ -41,6 +41,6 @@ class GiveawayUpdatedEvent extends AbstractEvent implements HasWebhookParams {
     }
 
     public static function description(): string {
-        return (new Language(ROOT_PATH . '/modules/Giveaway/language'))->get('general', 'giveaway_updated');
+        return (new Language(ROOT_PATH . '/modules/Giveaway/language'))->get('admin', 'giveaway_updated');
     }
 }
