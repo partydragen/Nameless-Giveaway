@@ -45,7 +45,7 @@
                 {if isset($GIVEAWAY_LIST)}
                     {foreach from=$GIVEAWAY_LIST item=giveaway}
                         <div class="ui segments">
-                            <h4 class="ui segment header">{$giveaway.prize} {if $giveaway.active}<span class="ui green label right floated">{$ACTIVE}</span>{else}<span class="ui red label right floated">{$ENDED}</span>{/if}</h4>
+                            <h4 class="ui segment header"><a href="{$giveaway.view_link}">{$giveaway.prize}</a> {if $giveaway.active}<span class="ui green label right floated">{$ACTIVE}</span>{else}<span class="ui red label right floated">{$ENDED}</span>{/if}</h4>
                             <div class="ui segment">
                                 {$giveaway.ends_x}<br/>
                                 {$giveaway.entries_x}<br/>
@@ -64,7 +64,7 @@
                                                 <div class="field">
                                                     <input type="hidden" name="token" value="{$TOKEN}">
                                                     <input type="hidden" name="giveaway" value="{$giveaway.id}">
-                                                    <input type="submit" class="fluid mini ui small primary button" value="Enter giveaway">
+                                                    <input type="submit" class="fluid mini ui small primary button" value="{$ENTER_GIVEAWAY}">
                                                 </div>
                                             </form>
                                         {else}

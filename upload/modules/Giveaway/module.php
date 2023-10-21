@@ -19,12 +19,13 @@ class Giveaway_Module extends Module {
         $name = 'Giveaway';
         $author = '<a href="https://partydragen.com" target="_blank" rel="nofollow noopener">Partydragen</a>';
         $module_version = '1.0.0';
-        $nameless_version = '2.0.2';
+        $nameless_version = '2.1.2';
 
         parent::__construct($this, $name, $author, $module_version, $nameless_version);
 
         // Define URLs which belong to this module
         $pages->add('Giveaway', '/giveaway', 'pages/giveaway.php', 'giveaway', true);
+        $pages->add('Giveaway', '/giveaway/view', 'pages/view_giveaway.php', 'giveaway', true);
         $pages->add('Giveaway', '/panel/giveaway', 'pages/panel/giveaway.php');
 
         EventHandler::registerEvent(GiveawayCreatedEvent::class);
@@ -206,8 +207,8 @@ class Giveaway_Module extends Module {
     }
 
     private static function updateCheck() {
-        $current_version = Util::getSetting('nameless_version');
-        $uid = Util::getSetting('unique_id');
+        $current_version = Settings::get('nameless_version');
+        $uid = Settings::get('unique_id');
 
         $enabled_modules = Module::getModules();
         foreach ($enabled_modules as $enabled_item) {

@@ -36,7 +36,7 @@ class ListGiveawaysEndpoint extends KeyAuthEndpoint {
         $giveaway_query = $api->getDb()->query($query . $where . $order . $limit, $params);
         if ($giveaway_query->count()) {
             foreach ($giveaway_query->results() as $item) {
-                $giveaway = new Giveaway($item->id);
+                $giveaway = new Giveaway(null, null, $item);
 
                 $required_groups_list = [];
                 $required_groups = json_decode($giveaway->data()->required_groups, true) ?? [];

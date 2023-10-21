@@ -293,14 +293,14 @@ $total_points = $queries->getWhere('giveaway', array('date', '=', $prevmonth));
 $points = DB::getInstance()->query("SELECT user_id, count(*) as points FROM nl2_giveaway WHERE date = ? GROUP BY user_id ORDER BY count(*) DESC", array($prevmonth))->results();
 $giveaway_entries = array();
 if(count($points)) {
-	foreach($points as $point){
-		$user_query = $queries->getWhere('users', array('id', '=', Output::getClean($point->user_id)));
-		
-		$giveaway_entries[] = array(
-			'username' => Output::getClean($user_query[0]->username),
-			'points' => Output::getClean($point->points)
-		);
-	}
+    foreach($points as $point){
+        $user_query = $queries->getWhere('users', array('id', '=', Output::getClean($point->user_id)));
+
+        $giveaway_entries[] = array(
+            'username' => Output::getClean($user_query[0]->username),
+            'points' => Output::getClean($point->points)
+        );
+    }
 }
 
 $winner = rand (0, count($total_points));
@@ -325,10 +325,10 @@ if (isset($errors) && count($errors))
     ]);
 
 $smarty->assign([
-	'PARENT_PAGE' => PARENT_PAGE,
-	'DASHBOARD' => $language->get('admin', 'dashboard'),
-	'GIVEAWAY' => $giveaway_language->get('general', 'giveaway'),
-	'PAGE' => PANEL_PAGE,
+    'PARENT_PAGE' => PARENT_PAGE,
+    'DASHBOARD' => $language->get('admin', 'dashboard'),
+    'GIVEAWAY' => $giveaway_language->get('general', 'giveaway'),
+    'PAGE' => PANEL_PAGE,
     'TOKEN' => Token::get(),
     'SUBMIT' => $language->get('general', 'submit')
 ]);

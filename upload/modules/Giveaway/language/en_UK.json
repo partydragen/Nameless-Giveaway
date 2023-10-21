@@ -5,6 +5,7 @@
     "general/id": "ID",
     "general/prize": "Prize",
     "general/entries": "Entries",
+    "general/all_entries": "All Entries",
     "general/ends_x": "Ends: {{ends}}",
     "general/entries_x": "Entries: {{entries}}",
     "general/your_entries_x": "Your Entries: {{entries}}",

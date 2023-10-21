@@ -11,10 +11,14 @@ class Giveaway {
 
     private $_data;
 
-    public function __construct(string $value = null, string $field = 'id') {
-        $data = DB::getInstance()->get('giveaway', [$field, '=', $value]);
-        if ($data->count()) {
-            $this->_data = $data->first();
+    public function __construct(?string $value = null, ?string $field = 'id', $query_data = null) {
+        if (!$query_data && $value) {
+            $data = DB::getInstance()->get('giveaway', [$field, '=', $value]);
+            if ($data->count()) {
+                $this->_data = $data->first();
+            }
+        } else if ($query_data) {
+            $this->_data = $query_data;
         }
     }
 
