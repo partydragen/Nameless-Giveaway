@@ -13,9 +13,55 @@ require_once(ROOT_PATH . '/core/templates/frontend_init.php');
 
 $captcha = false;
 
+if (Settings::get('mcc_giveaway', '1', 'Giveaway')) {
+    $cache->setCache('giveaways');
+    if ($cache->isCached('giveaway_list')) {
+        $giveaway_list = $cache->retrieve('giveaway_list');
+    } else {
+        $request = HttpClient::get('https://mccommunity.net/index.php?route=/api/v2/giveaways&active=true');
+        if (!$request->hasError()) {
+            $result = $request->json();
+
+            $referral_code = Settings::get('referral_code', null, 'Minecraft Community');
+
+            $giveaway_list = [];
+            foreach ($result->giveaways as $giveaway) {
+                $giveaway_list[] = [
+                    'id' => Output::getClean('mcc-' . $giveaway->id),
+                    'prize' => '[Minecraft Community] ' . Output::getClean($giveaway->prize),
+                    'active' => $giveaway->active,
+                    'ends_x' => $giveaway_language->get('general', 'ends_x', [
+                        'ends' => date(DATE_FORMAT, $giveaway->ends)
+                    ]),
+                    'entries_x' => $giveaway_language->get('general', 'entries_x', [
+                        'entries' => $giveaway->entries
+                    ]),
+                    'your_entries_x' => $giveaway_language->get('general', 'your_entries_x', [
+                        'entries' => 0
+                    ]),
+                    'winners' => $giveaway->winners_list,
+                    'can_enter' => true,
+                    'time_remaining' => 0,
+                    'enter_disabled_button' => $giveaway_language->get('general', 'already_entered_giveaway'),
+                    'view_link' => 'https://mccommunity.net/giveaway/view/' . $giveaway->id  . (!empty($referral_code) ? '?ref=' . $referral_code : '')
+                ];
+            }
+        }
+
+        $cache->store('giveaway_list', $giveaway_list, 180);
+    }
+}
+
 // Handle input
 if (Input::exists()) {
     if (Token::check(Input::get('token'))) {
+        // Check if this is a Minecraft Community giveaway
+        if (!is_numeric(Input::get('giveaway'))) {
+            $referral_code = Settings::get('referral_code', null, 'Minecraft Community');
+
+            Redirect::to('https://mccommunity.net/giveaway' . (!empty($referral_code) ? '?ref=' . $referral_code : ''));
+        }
+
         // Is user logged in?
         if (!$user->isLoggedIn()) {
             Session::flash('giveaway_error', $giveaway_language->get('general', 'login_to_enter'));
@@ -109,28 +155,30 @@ if (Input::exists()) {
 
 // Get current active giveaways
 $giveaway_query = DB::getInstance()->query('SELECT * FROM nl2_giveaway ORDER BY id DESC');
-if ($giveaway_query->count()) {
-    $giveaway_list = [];
+if ($giveaway_query->count() || isset($giveaway_list)) {
+    $giveaway_list = $giveaway_list ?? [];
 
     foreach ($giveaway_query->results() as $giveaway) {
+        $giveaway = new Giveaway(null, null, $giveaway);
+
         // Is giveaway active?
-        $active = $giveaway->ends > date('U');
+        $active = $giveaway->isActive();
 
         // Can user enter?
         $can_enter = false;
         $time_remaining = 0;
         if ($active && $user->isLoggedIn()) {
             // Has user already entered last 24 hours?
-            $last_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->id, $user->data()->id]);
+            $last_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->data()->id, $user->data()->id]);
             if ($last_entered->count()){
                 $last_entered = $last_entered->first();
 
-                if ($giveaway->entry_period != 'no_period' && $giveaway->entry_interval != 0) {
-                    if ($last_entered->entered < strtotime('-' . $giveaway->entry_interval . ' ' . $giveaway->entry_period)) {
+                if ($giveaway->data()->entry_period != 'no_period' && $giveaway->data()->entry_interval != 0) {
+                    if ($last_entered->entered < strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) {
                         $can_enter = true;
                     }
 
-                    $time_remaining = round(($last_entered->entered - strtotime('-' . $giveaway->entry_interval . ' ' . $giveaway->entry_period)) / 60);
+                    $time_remaining = round(($last_entered->entered - strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) / 60);
                 }
             } else {
                 $can_enter = true;
@@ -140,7 +188,7 @@ if ($giveaway_query->count()) {
         // Get winners
         $winners = [];
         if (!$active) {
-            $winners_query = DB::getInstance()->query('SELECT user_id FROM nl2_giveaway_winners WHERE giveaway_id = ?', [$giveaway->id]);
+            $winners_query = DB::getInstance()->query('SELECT user_id FROM nl2_giveaway_winners WHERE giveaway_id = ?', [$giveaway->data()->id]);
             if ($winners_query->count()) {
                 foreach ($winners_query->results() as $winner) {
                     $winner_user = new User($winner->user_id);
@@ -157,24 +205,25 @@ if ($giveaway_query->count()) {
         }
 
         $giveaway_list[] = [
-            'id' => Output::getClean($giveaway->id),
-            'prize' => Output::getClean($giveaway->prize),
+            'id' => Output::getClean($giveaway->data()->id),
+            'prize' => Output::getClean($giveaway->data()->prize),
             'active' => $active,
             'ends_x' => $giveaway_language->get('general', 'ends_x', [
-                'ends' => date(DATE_FORMAT, $giveaway->ends)
+                'ends' => date(DATE_FORMAT, $giveaway->data()->ends)
             ]),
             'entries_x' => $giveaway_language->get('general', 'entries_x', [
-                'entries' => DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ?', [$giveaway->id])->first()->c
+                'entries' => DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ?', [$giveaway->data()->id])->first()->c
             ]),
             'your_entries_x' => $giveaway_language->get('general', 'your_entries_x', [
-                'entries' => $user->isLoggedIn() ? DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ? AND user_id = ?', [$giveaway->id, $user->data()->id])->first()->c : 0
+                'entries' => $user->isLoggedIn() ? DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ? AND user_id = ?', [$giveaway->data()->id, $user->data()->id])->first()->c : 0
             ]),
             'winners' => $winners,
             'can_enter' => $can_enter,
             'time_remaining' => $time_remaining,
             'enter_disabled_button' => $time_remaining != null ? $giveaway_language->get('general', 'enter_again_in', [
                 'minutes' => Output::getClean($time_remaining)
-            ]) : $giveaway_language->get('general', 'already_entered_giveaway')
+            ]) : $giveaway_language->get('general', 'already_entered_giveaway'),
+            'view_link' => URL::build('/giveaway/view/' . $giveaway->data()->id)
         ];
     }
 
@@ -186,6 +235,7 @@ if ($giveaway_query->count()) {
         'WINNERS' => $giveaway_language->get('general', 'winners'),
         'ACTIVE' => $giveaway_language->get('general', 'active'),
         'ENDED' => $giveaway_language->get('general', 'ended'),
+        'ENTER_GIVEAWAY' => $giveaway_language->get('general', 'enter_giveaway'),
     ]);
 } else {
     $smarty->assign('NO_GIVEAWAY', $giveaway_language->get('general', 'no_giveaways'));

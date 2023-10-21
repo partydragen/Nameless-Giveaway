@@ -21,6 +21,23 @@ $page_title = $giveaway_language->get('general', 'giveaway');
 require_once(ROOT_PATH . '/core/templates/backend_init.php');
 
 if (!isset($_GET['action'])) {
+    if (Input::exists()) {
+        $errors = [];
+
+        if (Token::check()) {
+            // Show minecraft community giveaways?
+            if (isset($_POST['mcc_giveaway']) && $_POST['mcc_giveaway'] == 'on')
+                $show_mcc_giveaway = 1;
+            else
+                $show_mcc_giveaway = 0;
+
+            Settings::set('mcc_giveaway', $show_mcc_giveaway, 'Giveaway');
+        } else {
+            // Invalid token
+            $errors[] = $language->get('general', 'invalid_token');
+        }
+    }
+
     // List all giveaways
     $giveaway_query = DB::getInstance()->query('SELECT * FROM nl2_giveaway ORDER BY id DESC');
     if ($giveaway_query->count()) {
@@ -51,6 +68,7 @@ if (!isset($_GET['action'])) {
         'ENTRIES' => $giveaway_language->get('general', 'entries'),
         'WINNERS' => $giveaway_language->get('general', 'winners'),
         'ENDS' => $giveaway_language->get('general', 'ends'),
+        'MINECRAFT_COMMUNITY_VALUE' => Settings::get('mcc_giveaway', '1', 'Giveaway'),
     ]);
 
     $template_file = 'giveaway/giveaway.tpl';
