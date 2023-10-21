@@ -194,6 +194,7 @@ if ($giveaway_query->count() || isset($giveaway_list)) {
                     $winner_user = new User($winner->user_id);
                     if ($winner_user->exists()) {
                         $winners[] = [
+                            'user_id' => $winner_user->data()->id,
                             'username' => $winner_user->getDisplayname(),
                             'profile' => $winner_user->getProfileURL(),
                             'style' => $winner_user->getGroupStyle(),

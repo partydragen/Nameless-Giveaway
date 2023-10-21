@@ -52,7 +52,7 @@
                                 {$giveaway.your_entries_x}
 
                                 {if count($giveaway.winners) }
-                                    <br/>{$WINNERS}: {foreach from=$giveaway.winners item=winner}<a href="{$winner.profile}">{$winner.username}</a> {/foreach}
+                                    <br/>{$WINNERS}: {foreach from=$giveaway.winners item=winner}<a href="{$winner.profile}" style="{$winner.style}}" data-poload="{$USER_INFO_URL}{$winner.user_id}">{$winner.username}</a> {/foreach}
                                 {/if}
 
                                 {if $giveaway.active}
