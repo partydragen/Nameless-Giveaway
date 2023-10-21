@@ -65,6 +65,9 @@
                                             <td>
                                                 <div class="float-md-right">
                                                     <a href="{$giveaway.edit_link}" class="btn btn-warning btn-sm"><i class="fas fa-edit fa-fw"></i></a>
+                                                    <button class="btn btn-danger btn-sm" type="button"
+                                                            onclick="showDeleteModal('{$giveaway.id}')"><i
+                                                                class="fas fa-trash fa-fw"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -117,10 +120,46 @@
         <!-- End Content Wrapper -->
     </div>
 
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{$ARE_YOU_SURE}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {$CONFIRM_DELETE_GIVEAWAY}
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="deleteId" value="">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{$NO}</button>
+                    <button type="button" onclick="deleteGiveaway()" class="btn btn-primary">{$YES}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- End Wrapper -->
 </div>
 
 {include file='scripts.tpl'}
+
+<script type="text/javascript">
+    function showDeleteModal(id) {
+        $('#deleteId').attr('value', id);
+        $('#deleteModal').modal().show();
+    }
+
+    function deleteGiveaway() {
+        const id = $('#deleteId').attr('value');
+        if (id) {
+            const response = $.post("{$DELETE_LINK}", { id, action: 'delete', token: "{$TOKEN}" });
+            response.done(function() { window.location.reload(); });
+        }
+    }
+</script>
 
 </body>
 </html>

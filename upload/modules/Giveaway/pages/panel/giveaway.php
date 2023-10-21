@@ -68,6 +68,11 @@ if (!isset($_GET['action'])) {
         'ENTRIES' => $giveaway_language->get('general', 'entries'),
         'WINNERS' => $giveaway_language->get('general', 'winners'),
         'ENDS' => $giveaway_language->get('general', 'ends'),
+        'DELETE_LINK' => URL::build('/panel/giveaway/', 'action=delete'),
+        'ARE_YOU_SURE' => $language->get('general', 'are_you_sure'),
+        'CONFIRM_DELETE_GIVEAWAY' => $giveaway_language->get('admin', 'confirm_delete_giveaway'),
+        'YES' => $language->get('general', 'yes'),
+        'NO' => $language->get('general', 'no'),
         'MINECRAFT_COMMUNITY_VALUE' => Settings::get('mcc_giveaway', '1', 'Giveaway'),
     ]);
 
@@ -298,7 +303,20 @@ if (!isset($_GET['action'])) {
         break;
         case 'delete';
             // Delete giveaway
-        break;
+            if (Input::exists()) {
+                if (Token::check(Input::get('token'))) {
+                    if (isset($_POST['id'])) {
+                        DB::getInstance()->delete('giveaway', ['id', '=', $_POST['id']]);
+                        DB::getInstance()->delete('giveaway_entries', ['giveaway_id', '=', $_POST['id']]);
+                        DB::getInstance()->delete('queue', [['entity', '=', 'giveaway'], ['entity_id', '=', $_POST['id']]]);
+
+                        Session::flash('giveaway_success', $giveaway_language->get('admin', 'giveaway_deleted_successfully'));
+                    }
+                } else {
+                    $errors[] = $language->get('general', 'invalid_token');
+                }
+            }
+            die();
         default:
             Redirect::to(URL::build('/panel/giveaway'));
         break;
