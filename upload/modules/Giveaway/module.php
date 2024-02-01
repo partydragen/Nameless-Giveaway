@@ -57,6 +57,15 @@ class Giveaway_Module extends Module {
 
     public function onPageLoad($user, $pages, $cache, $smarty, $navs, $widgets, $template) {
         // Add link to navbar
+        // Add link to navbar
+        $cache->setCache('nav_location');
+        if (!$cache->isCached('giveaway_location')) {
+            $link_location = 1;
+            $cache->store('giveaway_location', 1);
+        } else {
+            $link_location = $cache->retrieve('giveaway_location');
+        }
+
         $cache->setCache('navbar_order');
         if (!$cache->isCached('giveaway_order')){
             $order = 4;
@@ -71,7 +80,20 @@ class Giveaway_Module extends Module {
         else
             $icon = $cache->retrieve('giveaway_icon');
 
-        $navs[0]->add('giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/giveaway'), 'top', null, $order, $icon);
+        switch ($link_location) {
+            case 1:
+                // Navbar
+                $navs[0]->add('giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/giveaway'), 'top', null, $order, $icon);
+                break;
+            case 2:
+                // "More" dropdown
+                $navs[0]->addItemToDropdown('more_dropdown', 'giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/giveaway'), 'top', null, $icon, $order);
+                break;
+            case 3:
+                // Footer
+                $navs[0]->add('giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/giveaway'), 'footer', null, $order, $icon);
+                break;
+        }
 
         if (defined('BACK_END')){
             if ($user->hasPermission('staffcp.giveaway')){

@@ -38,5 +38,6 @@
     "admin/giveaway_updated": "Giveaway Updated",
     "admin/giveaway_ended": "Giveaway Ended",
     "admin/giveaway_deleted": "Giveaway Deleted",
-    "admin/user_entry_giveaway": "User entry giveaway"
+    "admin/user_entry_giveaway": "User entry giveaway",
+    "admin/link_location": "Link Location"
 }

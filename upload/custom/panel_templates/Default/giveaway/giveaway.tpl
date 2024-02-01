@@ -80,6 +80,15 @@
                         {/if}
 
                         <form action="" method="post">
+                            <div class="form-group">
+                                <label for="link_location">{$LINK_LOCATION}</label>
+                                <select class="form-control" id="link_location" name="link_location">
+                                    <option value="1"{if $LINK_LOCATION_VALUE eq 1} selected{/if}>{$LINK_NAVBAR}</option>
+                                    <option value="2"{if $LINK_LOCATION_VALUE eq 2} selected{/if}>{$LINK_MORE}</option>
+                                    <option value="3"{if $LINK_LOCATION_VALUE eq 3} selected{/if}>{$LINK_FOOTER}</option>
+                                    <option value="4"{if $LINK_LOCATION_VALUE eq 4} selected{/if}>{$LINK_NONE}</option>
+                                </select>
+                            </div>
                             <div class="form-group custom-control custom-switch">
                                 <input id="inputShowMinecraftCommunityGiveaway" name="mcc_giveaway" type="checkbox" class="custom-control-input"{if $MINECRAFT_COMMUNITY_VALUE eq 1} checked{/if} />
                                 <label class="custom-control-label" for="inputShowMinecraftCommunityGiveaway">Include active giveaways from <a href="https://mccommunity.net/giveaway/" target="_blank">Minecraft Community</a> in your giveaway page?<br />Earn Money by your registered users and also earn 10% of the prize if they win!</label>

@@ -25,6 +25,26 @@ if (!isset($_GET['action'])) {
         $errors = [];
 
         if (Token::check()) {
+            // Get link location
+            if (isset($_POST['link_location'])) {
+                switch($_POST['link_location']) {
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                        $location = $_POST['link_location'];
+                        break;
+                    default:
+                        $location = 1;
+                }
+            } else {
+                $location = 1;
+            }
+
+            // Update Link location cache
+            $cache->setCache('nav_location');
+            $cache->store('giveaway_location', $location);
+
             // Show minecraft community giveaways?
             if (isset($_POST['mcc_giveaway']) && $_POST['mcc_giveaway'] == 'on')
                 $show_mcc_giveaway = 1;
@@ -60,6 +80,10 @@ if (!isset($_GET['action'])) {
         $smarty->assign('NO_GIVEAWAYS', $giveaway_language->get('general', 'no_giveaways'));
     }
 
+    // Retrieve link_location from cache
+    $cache->setCache('nav_location');
+    $link_location = $cache->retrieve('giveaway_location');
+
     $smarty->assign([
         'NEW_GIVEAWAY' => $giveaway_language->get('general', 'new_giveaway'),
         'NEW_GIVEAWAY_LINK' => URL::build('/panel/giveaway', 'action=new'),
@@ -73,6 +97,12 @@ if (!isset($_GET['action'])) {
         'CONFIRM_DELETE_GIVEAWAY' => $giveaway_language->get('admin', 'confirm_delete_giveaway'),
         'YES' => $language->get('general', 'yes'),
         'NO' => $language->get('general', 'no'),
+        'LINK_LOCATION' => $giveaway_language->get('admin', 'link_location'),
+        'LINK_LOCATION_VALUE' => $link_location,
+        'LINK_NAVBAR' => $language->get('admin', 'page_link_navbar'),
+        'LINK_MORE' => $language->get('admin', 'page_link_more'),
+        'LINK_FOOTER' => $language->get('admin', 'page_link_footer'),
+        'LINK_NONE' => $language->get('admin', 'page_link_none'),
         'MINECRAFT_COMMUNITY_VALUE' => Settings::get('mcc_giveaway', '1', 'Giveaway'),
     ]);
 
