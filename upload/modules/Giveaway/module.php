@@ -34,6 +34,8 @@ class Giveaway_Module extends Module {
         EventHandler::registerEvent(GiveawayDeletedEvent::class);
         EventHandler::registerEvent(UserEntryGiveawayEvent::class);
 
+        EventHandler::registerListener(UserDeletedEvent::class, DeleteUserGiveawayListener::class);
+
         $endpoints->loadEndpoints(ROOT_PATH . '/modules/Giveaway/includes/endpoints');
     }
 

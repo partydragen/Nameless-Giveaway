@@ -169,6 +169,9 @@ $entries_list = [];
 $entries = DB::getInstance()->query('SELECT user_id, count(*) as entries FROM nl2_giveaway_entries WHERE giveaway_id = ? GROUP BY user_id ORDER BY count(*) DESC', [$giveaway->data()->id]);
 foreach ($entries->results() as $entry) {
     $entry_user = new User($entry->user_id);
+    if (!$entry_user->exists()) {
+        continue;
+    }
 
     $entries_list[] = [
         'username' => $entry_user->getDisplayname(),
