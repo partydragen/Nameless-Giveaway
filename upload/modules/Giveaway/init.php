@@ -10,28 +10,7 @@
 $giveaway_language = new Language(ROOT_PATH . '/modules/Giveaway/language', LANGUAGE);
 
 // Load classes
-spl_autoload_register(function ($class) {
-    $path = join(DIRECTORY_SEPARATOR, [ROOT_PATH, 'modules', 'Giveaway', 'classes', $class . '.php']);
-    if (file_exists($path)) {
-        require_once($path);
-    }
-});
-
-// Load classes
-spl_autoload_register(function ($class) {
-    $path = join(DIRECTORY_SEPARATOR, [ROOT_PATH, 'modules', 'Giveaway', 'classes', 'Tasks', $class . '.php']);
-    if (file_exists($path)) {
-        require_once($path);
-    }
-});
-
-// Load classes
-spl_autoload_register(function ($class) {
-    $path = join(DIRECTORY_SEPARATOR, [ROOT_PATH, 'modules', 'Giveaway', 'classes', 'Events', $class . '.php']);
-    if (file_exists($path)) {
-        require_once($path);
-    }
-});
+require_once(ROOT_PATH . '/modules/Giveaway/autoload.php');
 
 // Initialise module
 require_once(ROOT_PATH . '/modules/Giveaway/module.php');
