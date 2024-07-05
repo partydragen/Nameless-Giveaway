@@ -77,6 +77,19 @@ if (Input::exists()) {
             }
         }
 
+        // Execute event with allow modules to interact with it
+        $event = new UserPreEntryGiveawayEvent(
+            $giveaway,
+            $user,
+        );
+        EventHandler::executeEvent($event);
+
+        // Check if the event returned any errors
+        if ($event->isCancelled()) {
+            Session::flash('giveaway_error', $event->getCancelledReason());
+            Redirect::to(URL::build('/giveaway'));
+        }
+
         if ($captcha) {
             $captcha_passed = CaptchaBase::getActiveProvider()->validateToken($_POST);
         } else {

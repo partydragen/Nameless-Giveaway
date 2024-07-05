@@ -40,6 +40,18 @@ class SubmitUserEntryEndpoint extends KeyAuthEndpoint {
             }
         }
 
+        // Execute event with allow modules to interact with it
+        $event = new UserPreEntryGiveawayEvent(
+            $giveaway,
+            $user,
+        );
+        EventHandler::executeEvent($event);
+
+        // Check if the event returned any errors
+        if ($event->isCancelled()) {
+            $api->throwError('giveaway:event_cancelled', [$event->getCancelledReason()]);
+        }
+
         // Has user id or ip already entered?
         $already_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND ip = ? OR giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->data()->id, $user->data()->lastip, $giveaway->data()->id, $user->data()->id]);
         if ($already_entered->count()) {

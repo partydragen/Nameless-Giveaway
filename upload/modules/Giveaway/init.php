@@ -14,4 +14,4 @@ require_once(ROOT_PATH . '/modules/Giveaway/autoload.php');
 
 // Initialise module
 require_once(ROOT_PATH . '/modules/Giveaway/module.php');
-$module = new Giveaway_Module($language, $giveaway_language, $pages, $endpoints);
+$module = new Giveaway_Module($language, $giveaway_language, $pages, $cache, $endpoints);

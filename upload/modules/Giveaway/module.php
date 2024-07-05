@@ -12,7 +12,7 @@ class Giveaway_Module extends Module {
     private Language $_language;
     private Language $_giveaway_language;
 
-    public function __construct($language, $giveaway_language, $pages, Endpoints $endpoints){
+    public function __construct(Language $language, Language $giveaway_language, Pages $pages, Cache $cache, Endpoints $endpoints) {
         $this->_language = $language;
         $this->_giveaway_language = $giveaway_language;
 
@@ -32,11 +32,31 @@ class Giveaway_Module extends Module {
         EventHandler::registerEvent(GiveawayUpdatedEvent::class);
         EventHandler::registerEvent(GiveawayEndedEvent::class);
         EventHandler::registerEvent(GiveawayDeletedEvent::class);
+        EventHandler::registerEvent(UserPreEntryGiveawayEvent::class);
         EventHandler::registerEvent(UserEntryGiveawayEvent::class);
 
         EventHandler::registerListener(UserDeletedEvent::class, DeleteUserGiveawayListener::class);
 
         $endpoints->loadEndpoints(ROOT_PATH . '/modules/Giveaway/includes/endpoints');
+
+        // Check if module version changed
+        $cache->setCache('giveaway_module_cache');
+        if (!$cache->isCached('module_version')) {
+            $cache->store('module_version', $module_version);
+
+            $this->initialiseUpdate($module_version);
+        } else {
+            if ($module_version != $cache->retrieve('module_version')) {
+                // Version have changed, Perform actions
+                $this->initialiseUpdate($cache->retrieve('module_version'));
+
+                $cache->store('module_version', $module_version);
+
+                if ($cache->isCached('update_check')) {
+                    $cache->erase('update_check');
+                }
+            }
+        }
     }
 
     public function onInstall() {
@@ -204,11 +224,25 @@ class Giveaway_Module extends Module {
         return [];
     }
 
+    private function initialiseUpdate($old_version) {
+        $old_version = str_replace([".", "-"], "", $old_version);
+
+        if ($old_version < 112) {
+            try {
+                DB::getInstance()->query('ALTER TABLE nl2_giveaway ADD `min_player_age` varchar(128) DEFAULT NULL');
+                DB::getInstance()->query('ALTER TABLE nl2_giveaway ADD `min_player_playtime` varchar(128) DEFAULT NULL');
+            } catch (Exception $e) {
+                // unable to retrieve from config
+                echo $e->getMessage() . '<br />';
+            }
+        }
+    }
+
     private function initialise() {
         // Generate tables
         if (!DB::getInstance()->showTables('giveaway')) {
             try {
-                DB::getInstance()->createTable("giveaway", " `id` int(11) NOT NULL AUTO_INCREMENT, `prize` varchar(128) NOT NULL, `winners` int(11) NOT NULL, `entry_interval` int(11) NOT NULL, `entry_period` varchar(32) NOT NULL, `created` int(11) NOT NULL, `ends` int(11) NOT NULL, `required_integrations` varchar(128) DEFAULT NULL, `required_groups` varchar(128) DEFAULT NULL, `task_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`)");
+                DB::getInstance()->createTable("giveaway", " `id` int(11) NOT NULL AUTO_INCREMENT, `prize` varchar(128) NOT NULL, `winners` int(11) NOT NULL, `entry_interval` int(11) NOT NULL, `entry_period` varchar(32) NOT NULL, `created` int(11) NOT NULL, `ends` int(11) NOT NULL, `required_integrations` varchar(128) DEFAULT NULL, `required_groups` varchar(128) DEFAULT NULL, `min_player_age` varchar(128) DEFAULT NULL, `min_player_playtime` varchar(128) DEFAULT NULL, `task_id` int(11) DEFAULT NULL, PRIMARY KEY (`id`)");
             } catch(Exception $e){
                 // Error
             }
