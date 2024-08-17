@@ -21,7 +21,7 @@ class UserEntryGiveawayEvent extends AbstractEvent implements HasWebhookParams {
                 'id' => (int) $this->user->data()->id,
                 'username' => $this->user->data()->username
             ],
-            'link' => URL::getSelfURL() . ltrim(URL::build('/giveaway'), '/')
+            'link' => URL::getSelfURL() . ltrim(URL::build('/giveaway/view/' . $this->giveaway->data()->id), '/')
         ];
     }
 

@@ -36,7 +36,7 @@ class GiveawayUpdatedEvent extends AbstractEvent implements HasWebhookParams {
             'required_integrations' => $required_integrations_list,
             'required_groups' => $required_groups_list,
             'entries' => (int) DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ?', [$this->giveaway->data()->id])->first()->c,
-            'link' => URL::getSelfURL() . ltrim(URL::build('/giveaway'), '/')
+            'link' => URL::getSelfURL() . ltrim(URL::build('/giveaway/view/' . $this->giveaway->data()->id), '/')
         ];
     }
 

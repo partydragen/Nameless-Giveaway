@@ -79,7 +79,7 @@ class ListGiveawaysEndpoint extends KeyAuthEndpoint {
                     'entries' => (int)DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ?', [$giveaway->data()->id])->first()->c,
                     'winners' => (int)$giveaway->data()->winners,
                     'winners_list' => $winners_list,
-                    'link' => URL::getSelfURL() . ltrim(URL::build('/giveaway'), '/')
+                    'link' => URL::getSelfURL() . ltrim(URL::build('/giveaway/view/' . $giveaway->data()->id), '/')
                 ];
             }
         }
