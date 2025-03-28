@@ -75,16 +75,16 @@ if (!isset($_GET['action'])) {
             ];
         }
 
-        $smarty->assign('GIVEAWAY_LIST', $giveaway_list);
+        $template->getEngine()->addVariable('GIVEAWAY_LIST', $giveaway_list);
     } else {
-        $smarty->assign('NO_GIVEAWAYS', $giveaway_language->get('general', 'no_giveaways'));
+        $template->getEngine()->addVariable('NO_GIVEAWAYS', $giveaway_language->get('general', 'no_giveaways'));
     }
 
     // Retrieve link_location from cache
     $cache->setCache('nav_location');
     $link_location = $cache->retrieve('giveaway_location');
 
-    $smarty->assign([
+    $template->getEngine()->addVariables([
         'NEW_GIVEAWAY' => $giveaway_language->get('general', 'new_giveaway'),
         'NEW_GIVEAWAY_LINK' => URL::build('/panel/giveaway', 'action=new'),
         'ID' => $giveaway_language->get('general', 'id'),
@@ -106,7 +106,7 @@ if (!isset($_GET['action'])) {
         'MINECRAFT_COMMUNITY_VALUE' => Settings::get('mcc_giveaway', '1', 'Giveaway'),
     ]);
 
-    $template_file = 'giveaway/giveaway.tpl';
+    $template_file = 'giveaway/giveaway';
 } else {
     switch ($_GET['action']) {
         case 'new';
@@ -223,7 +223,7 @@ if (!isset($_GET['action'])) {
                 'period' => 'all_time'
             ];
 
-            $smarty->assign([
+            $template->getEngine()->addVariables([
                 'GIVEAWAY_TITLE' => $giveaway_language->get('general', 'creating_giveaway'),
                 'BACK' => $language->get('general', 'back'),
                 'BACK_LINK' => URL::build('/panel/giveaway'),
@@ -243,7 +243,7 @@ if (!isset($_GET['action'])) {
                 'PLAYER_PLAYTIME_VALUE' => $player_playtime,
             ]);
 
-            $template_file = 'giveaway/giveaway_form.tpl';
+            $template_file = 'giveaway/giveaway_form';
         break;
         case 'edit';
             // Edit giveaway
@@ -365,7 +365,7 @@ if (!isset($_GET['action'])) {
                 'period' => $player_playtime_json['period'] ?? 'all_time'
             ];
 
-            $smarty->assign([
+            $template->getEngine()->addVariables([
                 'GIVEAWAY_TITLE' => $giveaway_language->get('general', 'editing_giveaway'),
                 'BACK' => $language->get('general', 'back'),
                 'BACK_LINK' => URL::build('/panel/giveaway'),
@@ -385,7 +385,7 @@ if (!isset($_GET['action'])) {
                 'PLAYER_PLAYTIME_VALUE' => $player_playtime,
             ]);
 
-            $template_file = 'giveaway/giveaway_form.tpl';
+            $template_file = 'giveaway/giveaway_form';
         break;
         case 'delete';
             // Delete giveaway
@@ -440,18 +440,18 @@ if (Session::exists('giveaway_success'))
     $success = Session::flash('giveaway_success');
 
 if (isset($success))
-    $smarty->assign([
+    $template->getEngine()->addVariables([
         'SUCCESS' => $success,
         'SUCCESS_TITLE' => $language->get('general', 'success')
     ]);
 
 if (isset($errors) && count($errors))
-    $smarty->assign([
+    $template->getEngine()->addVariables([
         'ERRORS' => $errors,
         'ERRORS_TITLE' => $language->get('general', 'error')
     ]);
 
-$smarty->assign([
+$template->getEngine()->addVariables([
     'PARENT_PAGE' => PARENT_PAGE,
     'DASHBOARD' => $language->get('admin', 'dashboard'),
     'GIVEAWAY' => $giveaway_language->get('general', 'giveaway'),
@@ -465,4 +465,4 @@ $template->onPageLoad();
 require(ROOT_PATH . '/core/templates/panel_navbar.php');
 
 // Display template
-$template->displayTemplate($template_file, $smarty);
+$template->displayTemplate($template_file);

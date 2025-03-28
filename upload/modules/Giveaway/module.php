@@ -19,7 +19,7 @@ class Giveaway_Module extends Module {
         $name = 'Giveaway';
         $author = '<a href="https://partydragen.com" target="_blank" rel="nofollow noopener">Partydragen</a> and my <a href="https://partydragen.com/supporters/" target="_blank">Sponsors</a>';
         $module_version = '1.1.2';
-        $nameless_version = '2.1.2';
+        $nameless_version = '2.2.0';
 
         parent::__construct($this, $name, $author, $module_version, $nameless_version);
 
@@ -203,7 +203,7 @@ class Giveaway_Module extends Module {
 
                 $update_check = json_decode($update_check);
                 if (!isset($update_check->error) && !isset($update_check->no_update) && isset($update_check->new_version)) {
-                    $smarty->assign(array(
+                    $template->getEngine()->addVariables([
                         'NEW_UPDATE' => (isset($update_check->urgent) && $update_check->urgent == 'true') ? $this->_giveaway_language->get('general', 'new_urgent_update_available_x', ['module' => $this->getName()]) : $this->_giveaway_language->get('general', 'new_update_available_x', ['module' => $this->getName()]),
                         'NEW_UPDATE_URGENT' => (isset($update_check->urgent) && $update_check->urgent == 'true'),
                         'CURRENT_VERSION' => $this->_giveaway_language->get('general', 'current_version_x', [
@@ -214,7 +214,7 @@ class Giveaway_Module extends Module {
                         ]),
                         'NAMELESS_UPDATE' => $this->_giveaway_language->get('general', 'view_resource'),
                         'NAMELESS_UPDATE_LINK' => Output::getClean($update_check->link)
-                    ));
+                    ]);
                 }
             }
         }

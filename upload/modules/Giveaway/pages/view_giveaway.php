@@ -197,7 +197,7 @@ foreach ($entries->results() as $entry) {
 
 // Smarty variables
 if ($captcha) {
-    $smarty->assign('CAPTCHA', CaptchaBase::getActiveProvider()->getHtml());
+    $template->getEngine()->addVariable('CAPTCHA', CaptchaBase::getActiveProvider()->getHtml());
     $template->addJSFiles(array(CaptchaBase::getActiveProvider()->getJavascriptSource() => array()));
 
     $submitScript = CaptchaBase::getActiveProvider()->getJavascriptSubmit('form-validate');
@@ -213,13 +213,13 @@ if ($captcha) {
 
 // Is user logged in?
 if (!$user->isLoggedIn()) {
-    $smarty->assign([
+    $template->getEngine()->addVariables([
         'LOGIN_LINK' => URL::build('/login'),
         'LOGIN_TO_ENTER' => $giveaway_language->get('general', 'login_to_enter'),
     ]);
 }
 
-$smarty->assign([
+$template->getEngine()->addVariables([
     'GIVEAWAY' => $giveaway_language->get('general', 'giveaway'),
     'TOKEN' => Token::get(),
     'CONTENT' => '',
@@ -259,24 +259,24 @@ if(Session::exists('giveaway_error')){
 }
 
 if (isset($success))
-    $smarty->assign([
+    $template->getEngine()->addVariables([
         'SUCCESS' => $success,
         'SUCCESS_TITLE' => $language->get('general', 'success')
     ]);
 
 if (isset($errors) && count($errors))
-    $smarty->assign([
+    $template->getEngine()->addVariables([
         'ERRORS' => $errors,
         'ERRORS_TITLE' => $language->get('general', 'error')
     ]);
 
 $template->onPageLoad();
 
-$smarty->assign('WIDGETS_LEFT', $widgets->getWidgets('left'));
-$smarty->assign('WIDGETS_RIGHT', $widgets->getWidgets('right'));
+$template->getEngine()->addVariable('WIDGETS_LEFT', $widgets->getWidgets('left'));
+$template->getEngine()->addVariable('WIDGETS_RIGHT', $widgets->getWidgets('right'));
 
 require(ROOT_PATH . '/core/templates/navbar.php');
 require(ROOT_PATH . '/core/templates/footer.php');
 
 // Display template
-$template->displayTemplate('giveaway/view_giveaway.tpl', $smarty);
+$template->displayTemplate('giveaway/view_giveaway');
