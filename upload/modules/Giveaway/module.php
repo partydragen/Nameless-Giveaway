@@ -18,7 +18,7 @@ class Giveaway_Module extends Module {
 
         $name = 'Giveaway';
         $author = '<a href="https://partydragen.com" target="_blank" rel="nofollow noopener">Partydragen</a> and my <a href="https://partydragen.com/supporters/" target="_blank">Sponsors</a>';
-        $module_version = '1.1.2';
+        $module_version = '1.1.3';
         $nameless_version = '2.2.0';
 
         parent::__construct($this, $name, $author, $module_version, $nameless_version);

@@ -14,8 +14,8 @@
 
         <div class="ui {if count($WIDGETS_LEFT) && count($WIDGETS_RIGHT) }four wide tablet eight wide computer{elseif count($WIDGETS_LEFT) || count($WIDGETS_RIGHT)}ten wide tablet twelve wide computer{else}sixteen wide{/if} column">
             <div class="ui segment">
-                <h1 style="display:inline;">{$GIVEAWAY}</h1>
-                <hr />
+                <h2 class="ui header">{$GIVEAWAY}</h2>
+                <div class="ui divider"></div>
 
                 {if isset($SUCCESS)}
                     <div class="ui success icon message">
