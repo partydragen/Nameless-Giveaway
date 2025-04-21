@@ -18,7 +18,7 @@ if (Settings::get('mcc_giveaway', '1', 'Giveaway')) {
     if ($cache->isCached('giveaway_list')) {
         $giveaway_list = $cache->retrieve('giveaway_list');
     } else {
-        $request = HttpClient::get('https://mccommunity.net/index.php?route=/api/v2/giveaways&active=true');
+        $request = HttpClient::get('https://partydragen.com/index.php?route=/api/v2/giveaways&active=true');
         if (!$request->hasError()) {
             $result = $request->json();
 
@@ -28,7 +28,7 @@ if (Settings::get('mcc_giveaway', '1', 'Giveaway')) {
             foreach ($result->giveaways as $giveaway) {
                 $giveaway_list[] = [
                     'id' => Output::getClean('mcc-' . $giveaway->id),
-                    'prize' => '[Minecraft Community] ' . Output::getClean($giveaway->prize),
+                    'prize' => '[Partydragen] ' . Output::getClean($giveaway->prize),
                     'active' => $giveaway->active,
                     'ends_x' => $giveaway_language->get('general', 'ends_x', [
                         'ends' => date(DATE_FORMAT, $giveaway->ends)
@@ -43,7 +43,7 @@ if (Settings::get('mcc_giveaway', '1', 'Giveaway')) {
                     'can_enter' => true,
                     'time_remaining' => 0,
                     'enter_disabled_button' => $giveaway_language->get('general', 'already_entered_giveaway'),
-                    'view_link' => 'https://mccommunity.net/giveaway/view/' . $giveaway->id  . (!empty($referral_code) ? '?ref=' . $referral_code : '')
+                    'view_link' => 'https://partydragen.com/giveaway/view/' . $giveaway->id  . (!empty($referral_code) ? '?ref=' . $referral_code : '')
                 ];
             }
         }
@@ -59,7 +59,7 @@ if (Input::exists()) {
         if (!is_numeric(Input::get('giveaway'))) {
             $referral_code = Settings::get('referral_code', null, 'Minecraft Community');
 
-            Redirect::to('https://mccommunity.net/giveaway' . (!empty($referral_code) ? '?ref=' . $referral_code : ''));
+            Redirect::to('https://partydragen.com/giveaway' . (!empty($referral_code) ? '?ref=' . $referral_code : ''));
         }
 
         // Is user logged in?
