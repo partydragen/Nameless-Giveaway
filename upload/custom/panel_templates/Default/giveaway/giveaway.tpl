@@ -90,8 +90,8 @@
                                 </select>
                             </div>
                             <div class="form-group custom-control custom-switch">
-                                <input id="inputShowMinecraftCommunityGiveaway" name="mcc_giveaway" type="checkbox" class="custom-control-input"{if $MINECRAFT_COMMUNITY_VALUE eq 1} checked{/if} />
-                                <label class="custom-control-label" for="inputShowMinecraftCommunityGiveaway">Include active giveaways from <a href="https://mccommunity.net/giveaway/" target="_blank">Minecraft Community</a> in your giveaway page?<br />Earn Money by your registered users and also earn 10% of the prize if they win!</label>
+                                <input id="inputShowPartydragenGiveaway" name="mcc_giveaway" type="checkbox" class="custom-control-input"{if $MINECRAFT_COMMUNITY_VALUE eq 1} checked{/if} />
+                                <label class="custom-control-label" for="inputShowPartydragenGiveaway">Include active giveaways from <a href="https://partydragen.com/giveaway" target="_blank">Partydragen</a> in your giveaway page?<br />Earn Money by your registered users and also earn 10% of the prize if they win!</label>
                             </div>
                             <div class="form-group">
                                 <input type="hidden" name="token" value="{$TOKEN}">

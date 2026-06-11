@@ -168,7 +168,7 @@ if (Input::exists()) {
 
 // Get current active giveaways
 $giveaway_query = DB::getInstance()->query('SELECT * FROM nl2_giveaway ORDER BY id DESC');
-if ($giveaway_query->count() || isset($giveaway_list)) {
+if ($giveaway_query->count() || (isset($giveaway_list) && count($giveaway_list))) {
     $giveaway_list = $giveaway_list ?? [];
 
     foreach ($giveaway_query->results() as $giveaway) {
