@@ -1,185 +1,79 @@
 <?php
 /*
- *  Made by Partydragen
- *  https://partydragen.com
+ * Made by Partydragen
+ * https://partydragen.com
  *
- *  Giveaway module - Giveaway page
+ * Giveaway module - Local giveaway detail page
  */
 
-// Always define page name
 const PAGE = 'giveaway';
 $page_title = $giveaway_language->get('general', 'giveaway');
 require_once(ROOT_PATH . '/core/templates/frontend_init.php');
 
-// Get giveaway ID
-$giveaway_id = explode('/', $route);
-$giveaway_id = $giveaway_id[count($giveaway_id) - 1];
+$route_parts = explode('/', $route);
+$route_value = (string)end($route_parts);
+$slug_parts = explode('-', $route_value);
 
-if (!strlen($giveaway_id)) {
+if (!isset($slug_parts[0]) || !ctype_digit($slug_parts[0])) {
     require_once(ROOT_PATH . '/404.php');
     die();
 }
 
-$giveaway_id = explode('-', $giveaway_id);
-if (!is_numeric($giveaway_id[0])) {
-    require_once(ROOT_PATH . '/404.php');
-    die();
-}
-$giveaway_id = $giveaway_id[0];
+$giveaway_id = (int)$slug_parts[0];
+$giveaway = GiveawayService::find($giveaway_id);
 
-$giveaway = new Giveaway($giveaway_id);
-if (!$giveaway->exists()) {
+if ($giveaway === null) {
     Redirect::to(URL::build('/giveaway'));
 }
 
+$view_url = URL::build('/giveaway/view/' . $giveaway_id);
 $captcha = false;
 
-// Handle input
 if (Input::exists()) {
-    if (Token::check(Input::get('token'))) {
-        // Is user logged in?
-        if (!$user->isLoggedIn()) {
-            Session::flash('giveaway_error', $giveaway_language->get('general', 'login_to_enter'));
-            Redirect::to(URL::build('/giveaway'));
-        }
-
-        if (!$giveaway->isActive()) {
-            Session::flash('giveaway_error', $giveaway_language->get('general', 'giveaway_already_ended'));
-            Redirect::to(URL::build('/giveaway'));
-        }
-
-        foreach ($giveaway->getRequiredIntegrations() as $integration) {
-            $integrationUser = $user->getIntegration($integration->getName());
-            if ($integrationUser == null || $integrationUser->data()->username == null || $integrationUser->data()->identifier == null) {
-                Session::flash('giveaway_error', $giveaway_language->get('general', 'giveaway_requires_integration', [
-                    'integration' => Output::getClean($integration->getName()),
-                    'linkStart' => '<a href="' . URL::build('/user/connections') . '">',
-                    'linkEnd' => '</a>'
-                ]));
-
-                Redirect::to(URL::build('/giveaway'));
-            }
-        }
-
-        $required_groups = json_decode($giveaway->data()->required_groups, true) ?? [];
-        if (count($required_groups)) {
-            $user_groups = $user->getAllGroupIds();
-            foreach ($required_groups as $item) {
-                if(!array_key_exists($item, $user_groups)) {
-                    $group = DB::getInstance()->query('SELECT name FROM nl2_groups WHERE id = ?', [$item])->first();
-
-                    Session::flash('giveaway_error', $giveaway_language->get('general', 'giveaway_requires_groups', [
-                        'group' => Output::getClean($group->name ?? 'Unknown')
-                    ]));
-
-                    Redirect::to(URL::build('/giveaway'));
-                }
-            }
-        }
-
-        // Execute event with allow modules to interact with it
-        $event = new UserPreEntryGiveawayEvent(
-            $giveaway,
-            $user,
-        );
-        EventHandler::executeEvent($event);
-
-        // Check if the event returned any errors
-        if ($event->isCancelled()) {
-            Session::flash('giveaway_error', $event->getCancelledReason());
-            Redirect::to(URL::build('/giveaway'));
-        }
-
-        if ($captcha) {
-            $captcha_passed = CaptchaBase::getActiveProvider()->validateToken($_POST);
-        } else {
-            $captcha_passed = true;
-        }
-
-        if ($captcha_passed) {
-            // Has user id or ip already entered?
-            $already_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND ip = ? OR giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->data()->id, HttpUtils::getRemoteAddress(), $giveaway->data()->id, $user->data()->id]);
-            if ($already_entered->count()) {
-                $already_entered = $already_entered->first();
-
-                if ($already_entered->entered >= strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) {
-                    $has_entered = true;
-                    $time_left = round(($already_entered->entered - strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) / 60);
-                }
-            }
-
-            if (!isset($has_entered)) {
-                DB::getInstance()->insert("giveaway_entries", [
-                    'giveaway_id' => $giveaway->data()->id,
-                    'user_id' => $user->data()->id,
-                    'entered' => date("U"),
-                    'ip' => HttpUtils::getRemoteAddress(),
-                ]);
-
-                // Re-query giveaway
-                EventHandler::executeEvent(new UserEntryGiveawayEvent($giveaway, $user));
-                EventHandler::executeEvent(new GiveawayUpdatedEvent($giveaway));
-
-                Session::flash('giveaway_success', $giveaway_language->get('general', 'successfully_entered_giveaway'));
-                Redirect::to(URL::build('/giveaway/view/' . $giveaway->data()->id));
-            } else {
-                Session::flash('giveaway_error', $giveaway_language->get('general', 'already_entered_giveaway'));
-                Redirect::to(URL::build('/giveaway/view/' . $giveaway->data()->id));
-            }
-        } else {
-            // Invalid recaptcha
-            $errors[] = $language->get('user', 'invalid_recaptcha');
-        }
-    } else {
-        // Invalid token
+    if (!Token::check(Input::get('token'))) {
         $errors[] = $language->get('general', 'invalid_token');
-    }
-}
-
-// Can user enter?
-$can_enter = false;
-$time_remaining = 0;
-if ($giveaway->isActive() && $user->isLoggedIn()) {
-    // Has user already entered last 24 hours?
-    $last_entered = DB::getInstance()->query('SELECT entered FROM nl2_giveaway_entries WHERE giveaway_id = ? AND user_id = ? ORDER BY entered DESC LIMIT 1', [$giveaway->data()->id, $user->data()->id]);
-    if ($last_entered->count()){
-        $last_entered = $last_entered->first();
-
-        if ($giveaway->data()->entry_period != 'no_period' && $giveaway->data()->entry_interval != 0) {
-            if ($last_entered->entered < strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) {
-                $can_enter = true;
-            }
-
-            $time_remaining = round(($last_entered->entered - strtotime('-' . $giveaway->data()->entry_interval . ' ' . $giveaway->data()->entry_period)) / 60);
-        }
+    } elseif (!$user->isLoggedIn()) {
+        Session::flash('giveaway_error', $giveaway_language->get('general', 'login_to_enter'));
+        Redirect::to($view_url);
     } else {
-        $can_enter = true;
-    }
-}
+        $captcha_passed = !$captcha || CaptchaBase::getActiveProvider()->validateToken($_POST);
 
-// Get winners
-$winners = [];
-if (!$giveaway->isActive()) {
-    $winners_query = DB::getInstance()->query('SELECT user_id FROM nl2_giveaway_winners WHERE giveaway_id = ?', [$giveaway->data()->id]);
-    if ($winners_query->count()) {
-        foreach ($winners_query->results() as $winner) {
-            $winner_user = new User($winner->user_id);
-            if ($winner_user->exists()) {
-                $winners[] = [
-                    'user_id' => $winner_user->data()->id,
-                    'username' => $winner_user->getDisplayname(),
-                    'profile' => $winner_user->getProfileURL(),
-                    'style' => $winner_user->getGroupStyle(),
-                    'avatar' => $winner_user->getAvatar()
-                ];
-            }
+        if (!$captcha_passed) {
+            $errors[] = $language->get('user', 'invalid_recaptcha');
+        } else {
+            $result = GiveawayService::enter(
+                $giveaway_id,
+                $user,
+                HttpUtils::getRemoteAddress()
+            );
+
+            Session::flash(
+                $result->isSuccess() ? 'giveaway_success' : 'giveaway_error',
+                GiveawayCatalogue::getMessage($result, $giveaway_language, true)
+            );
+
+            Redirect::to($view_url);
         }
     }
 }
 
-// List all entries
+$serialized = GiveawayService::serialize(
+    $giveaway,
+    $user,
+    HttpUtils::getRemoteAddress()
+);
+$template_giveaway = GiveawayCatalogue::toTemplate($serialized, $giveaway_language);
+
 $entries_list = [];
-$entries = DB::getInstance()->query('SELECT user_id, count(*) as entries FROM nl2_giveaway_entries WHERE giveaway_id = ? GROUP BY user_id ORDER BY count(*) DESC', [$giveaway->data()->id]);
+$entries = DB::getInstance()->query(
+    'SELECT user_id, COUNT(*) AS entries
+     FROM nl2_giveaway_entries
+     WHERE giveaway_id = ?
+     GROUP BY user_id
+     ORDER BY COUNT(*) DESC',
+    [$giveaway_id]
+);
+
 foreach ($entries->results() as $entry) {
     $entry_user = new User($entry->user_id);
     if (!$entry_user->exists()) {
@@ -188,30 +82,34 @@ foreach ($entries->results() as $entry) {
 
     $entries_list[] = [
         'username' => $entry_user->getDisplayname(),
-        'user_id' => $entry_user->data()->id,
+        'user_id' => (int)$entry_user->data()->id,
         'user_profile' => $entry_user->getProfileURL(),
         'user_style' => $entry_user->getGroupStyle(),
-        'entries' => $entry->entries
+        'entries' => (int)$entry->entries,
     ];
 }
 
-// Smarty variables
 if ($captcha) {
-    $template->getEngine()->addVariable('CAPTCHA', CaptchaBase::getActiveProvider()->getHtml());
-    $template->addJSFiles(array(CaptchaBase::getActiveProvider()->getJavascriptSource() => array()));
+    $template->getEngine()->addVariable(
+        'CAPTCHA',
+        CaptchaBase::getActiveProvider()->getHtml()
+    );
 
-    $submitScript = CaptchaBase::getActiveProvider()->getJavascriptSubmit('form-validate');
-    if ($submitScript) {
+    $template->addJSFiles([
+        CaptchaBase::getActiveProvider()->getJavascriptSource() => [],
+    ]);
+
+    $submit_script = CaptchaBase::getActiveProvider()->getJavascriptSubmit('form-validate');
+    if ($submit_script) {
         $template->addJSScript('
             $("#form-validate").submit(function(e) {
                 e.preventDefault();
-                ' . $submitScript . '
+                ' . $submit_script . '
             });
         ');
     }
 }
 
-// Is user logged in?
 if (!$user->isLoggedIn()) {
     $template->getEngine()->addVariables([
         'LOGIN_LINK' => URL::build('/login'),
@@ -224,59 +122,51 @@ $template->getEngine()->addVariables([
     'TOKEN' => Token::get(),
     'CONTENT' => '',
     'ENTRIES_LIST' => $entries_list,
-    'GIVEAWAY_ID' => Output::getClean($giveaway->data()->id),
+    'GIVEAWAY_ID' => $template_giveaway['id'],
     'PRIZE' => $giveaway_language->get('general', 'prize'),
-    'PRIZE_VALUE' => Output::getClean($giveaway->data()->prize),
-    'ACTIVE' => $giveaway->isActive(),
-    'ENDS_X' => $giveaway_language->get('general', 'ends_x', [
-        'ends' => date(DATE_FORMAT, $giveaway->data()->ends)
-    ]),
+    'PRIZE_VALUE' => Output::getClean($serialized['prize']),
+    'ACTIVE' => $template_giveaway['active'],
+    'ENDS_X' => $template_giveaway['ends_x'],
     'ALL_ENTRIES' => $giveaway_language->get('general', 'all_entries'),
-    'ENTRIES_X' => $giveaway_language->get('general', 'entries_x', [
-        'entries' => DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ?', [$giveaway->data()->id])->first()->c
-    ]),
-    'YOUR_ENTRIES_X' => $giveaway_language->get('general', 'your_entries_x', [
-        'entries' => $user->isLoggedIn() ? DB::getInstance()->query('SELECT COUNT(*) AS c FROM nl2_giveaway_entries WHERE giveaway_id = ? AND user_id = ?', [$giveaway->data()->id, $user->data()->id])->first()->c : 0
-    ]),
-    'WINNERS' => $winners,
-    'CAN_ENTER' => $can_enter,
-    'TIME_REMAINING' => $time_remaining,
-    'ENTER_DISABLED_BUTTON' => $time_remaining != null ? $giveaway_language->get('general', 'enter_again_in', [
-        'minutes' => Output::getClean($time_remaining)
-    ]) : $giveaway_language->get('general', 'already_entered_giveaway'),
+    'ENTRIES_X' => $template_giveaway['entries_x'],
+    'YOUR_ENTRIES_X' => $template_giveaway['your_entries_x'],
+    'WINNERS' => $template_giveaway['winners'],
+    'CAN_ENTER' => $template_giveaway['can_enter'],
+    'TIME_REMAINING' => $template_giveaway['time_remaining'],
+    'ENTER_DISABLED_BUTTON' => $template_giveaway['enter_disabled_button'],
     'ENTER_GIVEAWAY' => $giveaway_language->get('general', 'enter_giveaway'),
 ]);
 
 // Load modules + template
 Module::loadPage($user, $pages, $cache, $smarty, [$navigation, $cc_nav, $staffcp_nav], $widgets, $template);
 
-if(Session::exists('giveaway_success')){
+if (Session::exists('giveaway_success')) {
     $success = Session::flash('giveaway_success');
 }
 
-if(Session::exists('giveaway_error')){
+if (Session::exists('giveaway_error')) {
     $errors[] = Session::flash('giveaway_error');
 }
 
-if (isset($success))
+if (isset($success)) {
     $template->getEngine()->addVariables([
         'SUCCESS' => $success,
-        'SUCCESS_TITLE' => $language->get('general', 'success')
+        'SUCCESS_TITLE' => $language->get('general', 'success'),
     ]);
+}
 
-if (isset($errors) && count($errors))
+if (isset($errors) && count($errors)) {
     $template->getEngine()->addVariables([
         'ERRORS' => $errors,
-        'ERRORS_TITLE' => $language->get('general', 'error')
+        'ERRORS_TITLE' => $language->get('general', 'error'),
     ]);
+}
 
 $template->onPageLoad();
-
 $template->getEngine()->addVariable('WIDGETS_LEFT', $widgets->getWidgets('left'));
 $template->getEngine()->addVariable('WIDGETS_RIGHT', $widgets->getWidgets('right'));
 
 require(ROOT_PATH . '/core/templates/navbar.php');
 require(ROOT_PATH . '/core/templates/footer.php');
 
-// Display template
 $template->displayTemplate('giveaway/view_giveaway');

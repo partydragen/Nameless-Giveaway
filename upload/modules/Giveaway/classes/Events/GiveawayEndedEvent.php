@@ -43,6 +43,7 @@ class GiveawayEndedEvent extends AbstractEvent implements HasWebhookParams {
 
         return [
             'id' => (int) $this->giveaway->data()->id,
+            'content' => $this->giveaway->data()->content,
             'prize' => $this->giveaway->data()->prize,
             'created' => (int) $this->giveaway->data()->created,
             'ends' => (int) $this->giveaway->data()->ends,

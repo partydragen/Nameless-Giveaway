@@ -101,6 +101,13 @@
                                 </div>
 
                                 <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="inputContent">Extra Content</label>
+                                        <input type="text" name="content" class="form-control" id="inputContent" placeholder="Extra Content" value="{$CONTENT_VALUE}">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
                                     <br />
                                     <h5>MCStatistics (<a href="https://mcstatistics.org/" target="_blank">View</a>)  {if !$MCSTATISTICS_ENABLED}<span class="badge badge-warning">Module Not Installed!</span>{/if}</h5>
                                     <hr>

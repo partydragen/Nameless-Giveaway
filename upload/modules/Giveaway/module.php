@@ -18,7 +18,7 @@ class Giveaway_Module extends Module {
 
         $name = 'Giveaway';
         $author = '<a href="https://partydragen.com" target="_blank" rel="nofollow noopener">Partydragen</a> and my <a href="https://partydragen.com/supporters/" target="_blank">Sponsors</a>';
-        $module_version = '1.1.3';
+        $module_version = '1.2.0';
         $nameless_version = '2.2.0';
 
         parent::__construct($this, $name, $author, $module_version, $nameless_version);
@@ -116,6 +116,10 @@ class Giveaway_Module extends Module {
                 $navs[0]->add('giveaway', $this->_giveaway_language->get('general', 'giveaway'), URL::build('/giveaway'), 'footer', null, $order, $icon);
                 break;
         }
+
+        // Active giveaways
+        require_once(ROOT_PATH . '/modules/Giveaway/widgets/ActiveGiveawaysWidgets.php');
+        $widgets->add(new ActiveGiveawaysWidgets($template->getEngine(), $this->_giveaway_language, $cache));
 
         if (defined('BACK_END')){
             if ($user->hasPermission('staffcp.giveaway')){
@@ -231,6 +235,15 @@ class Giveaway_Module extends Module {
             try {
                 DB::getInstance()->query('ALTER TABLE nl2_giveaway ADD `min_player_age` varchar(128) DEFAULT NULL');
                 DB::getInstance()->query('ALTER TABLE nl2_giveaway ADD `min_player_playtime` varchar(128) DEFAULT NULL');
+            } catch (Exception $e) {
+                // unable to retrieve from config
+                echo $e->getMessage() . '<br />';
+            }
+        }
+
+        if ($old_version < 120) {
+            try {
+                DB::getInstance()->query('ALTER TABLE nl2_giveaway ADD `content` varchar(1024) DEFAULT NULL');
             } catch (Exception $e) {
                 // unable to retrieve from config
                 echo $e->getMessage() . '<br />';

@@ -4,7 +4,7 @@
  *
  * @package Modules\Giveaway
  * @author Partydragen
- * @version 2.1.0
+ * @version 2.2.5
  * @license MIT
  */
 class Giveaway {
@@ -67,5 +67,41 @@ class Giveaway {
         }
 
         return $required_integrations_list;
+    }
+
+    /**
+     * Get the canonical entry status. Time remaining is returned in seconds.
+     */
+    public function getEntryStatus(User $user, ?string $ip = null): array {
+        return GiveawayService::getEntryStatus($this, $user, $ip);
+    }
+
+    /*
+     * Get the winners of this giveaway.
+     *
+     * @return array List of winners.
+     */
+    public function getWinners(): array {
+        $winners = [];
+
+        if (!$this->isActive()) {
+            $winners_query = DB::getInstance()->query('SELECT user_id FROM nl2_giveaway_winners WHERE giveaway_id = ?', [$this->data()->id]);
+            if ($winners_query->count()) {
+                foreach ($winners_query->results() as $winner) {
+                    $winner_user = new User($winner->user_id);
+                    if ($winner_user->exists()) {
+                        $winners[] = [
+                            'user_id' => $winner_user->data()->id,
+                            'username' => $winner_user->getDisplayname(),
+                            'profile' => $winner_user->getProfileURL(),
+                            'style' => $winner_user->getGroupStyle(),
+                            'avatar' => $winner_user->getAvatar()
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $winners;
     }
 }

@@ -116,6 +116,9 @@ if (!isset($_GET['action'])) {
 
                 if (Token::check()) {
                     $validation = Validate::check($_POST, [
+                        'content' => [
+                            Validate::MAX => 1024
+                        ],
                         'prize' => [
                             Validate::REQUIRED => true,
                             Validate::MIN => 1,
@@ -134,7 +137,7 @@ if (!isset($_GET['action'])) {
                         ],
                         'ends' => [
                             Validate::REQUIRED => true
-                        ]
+                        ],
                     ]);
 
                     if ($validation->passed()) {
@@ -163,6 +166,7 @@ if (!isset($_GET['action'])) {
                             'required_groups' => json_encode(isset($required_groups) && is_array($required_groups) ? $required_groups : []),
                             'min_player_age' => json_encode($player_age),
                             'min_player_playtime' => json_encode($player_playtime),
+                            'content' => Input::get('content'),
                         ]);
                         $giveaway_id = DB::getInstance()->lastId();
                         $giveaway = new Giveaway($giveaway_id);
@@ -261,6 +265,9 @@ if (!isset($_GET['action'])) {
 
                 if (Token::check()) {
                     $validation = Validate::check($_POST, [
+                        'content' => [
+                            Validate::MAX => 1024
+                        ],
                         'prize' => [
                             Validate::REQUIRED => true,
                             Validate::MIN => 1,
@@ -308,6 +315,7 @@ if (!isset($_GET['action'])) {
                             'required_groups' => json_encode(isset($required_groups) && is_array($required_groups) ? $required_groups : []),
                             'min_player_age' => json_encode($player_age),
                             'min_player_playtime' => json_encode($player_playtime),
+                            'content' => Input::get('content'),
                         ]);
 
                         // Update task
@@ -380,6 +388,7 @@ if (!isset($_GET['action'])) {
                 'ENTRY_PERIOD' => Output::getClean($giveaway->data()->entry_period),
                 'INTEGRATIONS_LIST' => $integrations_list,
                 'GROUPS_LIST' => $groups_list,
+                'CONTENT_VALUE' => Output::getClean($giveaway->data()->content),
                 'MCSTATISTICS_ENABLED' => Util::isModuleEnabled('MCStatistics'),
                 'PLAYER_AGE_VALUE' => $player_age,
                 'PLAYER_PLAYTIME_VALUE' => $player_playtime,
